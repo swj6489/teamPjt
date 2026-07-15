@@ -17,6 +17,7 @@
           </li>
         </ul>
       </section>
+      
 
       <section style="margin-top:1rem">
         <h3>북마크한 장소(POI)</h3>
@@ -34,11 +35,40 @@
           </li>
         </ul>
       </section>
+      <section style="margin-top:1rem">
+        <h3>저장된 맞춤형 추천 루트</h3>
+        <div v-if="routes.length===0">저장된 맞춤형 루트가 없습니다.</div>
+        <ul>
+          <li v-for="r in routes" :key="r.id" class="bm-item">
+            <div class="bm-main">
+              <div class="bm-title">{{ r.title }}</div>
+              <div class="bm-meta">{{ r.desc }} · {{ profileLabel(r.profile) }}</div>
+            </div>
+            <div class="bm-actions">
+              <button @click="viewRoute(r)">보기</button>
+              <button @click="removeRoute(r.id)">삭제</button>
+            </div>
+          </li>
+        </ul>
+      </section>
     <div v-if="selected" class="modal" @click.self="selected=null">
       <div class="modal-card">
         <button @click="selected=null" style="float:right;border:none;background:transparent">✕</button>
         <h3>{{ selected.title }}</h3>
         <div>{{ selected.content }}</div>
+      </div>
+    </div>
+    <div v-if="routeSelected" class="modal" @click.self="routeSelected=null">
+      <div class="modal-card">
+        <button @click="routeSelected=null" style="float:right;border:none;background:transparent">✕</button>
+        <h3>{{ routeSelected.title }}</h3>
+        <div>{{ routeSelected.desc }}</div>
+        <ol style="margin-top:0.6rem">
+          <li v-for="p in routeSelected.stops" :key="p.id" style="margin-bottom:0.5rem">
+            <div style="font-weight:700">{{ p.name }}</div>
+            <div style="font-size:0.9rem;color:#666">{{ p.category }}</div>
+          </li>
+        </ol>
       </div>
     </div>
   </div>
@@ -96,7 +126,8 @@ export default {
     function view(p){ selected.value = p }
     function formatDate(ts){ return new Date(ts).toLocaleString() }
 
-    onMounted(()=>{ loadBookmarks(); loadItems(); loadPoiItems() })
+    // existing lifecycle and POI handlers
+    onMounted(()=>{ loadBookmarks(); loadItems(); loadPoiItems(); loadRoutes() })
     function removePoi(id){ poiBookmarks.value = poiBookmarks.value.filter(x=>x!==id); localStorage.setItem('localhub-bookmarks-poi', JSON.stringify(poiBookmarks.value)); loadPoiItems() }
     function viewPoi(p){
       // if POI has coordinates, navigate to map and open it
@@ -110,7 +141,23 @@ export default {
     }
 
     const poiItems = ref([])
-    return { items, removePost, view, selected, formatDate, poiItems, removePoi, viewPoi }
+
+    // saved custom routes created from CustomGuide
+    const routes = ref([])
+    const routeSelected = ref(null)
+
+    function loadRoutes(){
+      try{ routes.value = JSON.parse(localStorage.getItem('localhub-routes')||'[]') }catch(e){ routes.value = [] }
+    }
+
+    function viewRoute(r){ routeSelected.value = r }
+    function removeRoute(id){ routes.value = routes.value.filter(x=>x.id!==id); localStorage.setItem('localhub-routes', JSON.stringify(routes.value)); }
+
+    function profileLabel(key){
+      return key==='family'? '가족' : key==='date'? '데이트' : key==='friends'? '친구' : key==='solo'? '혼행' : (key||'')
+    }
+
+    return { items, removePost, view, selected, formatDate, poiItems, removePoi, viewPoi, routes, viewRoute, removeRoute, routeSelected, profileLabel }
   }
 }
 </script>
