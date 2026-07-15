@@ -1,0 +1,107 @@
+<template>
+  <div class="guide">
+    <h2>맞춤형 가이드</h2>
+    <label>프로필 선택:
+      <select v-model="profile">
+        <option value="family">가족</option>
+        <option value="date">데이트</option>
+        <option value="friends">친구</option>
+        <option value="solo">혼행</option>
+      </select>
+    </label>
+    <button class="btn primary" @click="generate" style="margin-left:8px">루트 생성</button>
+
+    <div v-if="routes.length" class="recs">
+      <h3>맞춤형 추천 루트</h3>
+      <div v-for="r in routes" :key="r.id" class="route-card">
+        <div class="route-head">
+          <div>
+            <strong>{{ r.title }}</strong>
+            <div class="muted">{{ r.desc }}</div>
+          </div>
+          <div>
+            <button class="btn" @click="saveRoute(r)">루트 저장</button>
+          </div>
+        </div>
+        <ol class="route-stops">
+          <li v-for="p in r.stops" :key="p.id">
+            <div class="stop-name">{{ p.name }}</div>
+            <div class="stop-meta muted">{{ p.category }} {{ p.raw && p.raw.eventplace ? '· ' + p.raw.eventplace : '' }}</div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref } from 'vue'
+
+export default {
+  name:'CustomGuide',
+  setup(){
+    const profile = ref('family')
+    const routes = ref([])
+
+    const prefs = {
+      family: ['관광지','숙박','문화시설','여행코스'],
+      date: ['문화시설','관광지','쇼핑','레포츠'],
+      friends: ['레포츠','관광지','쇼핑','축제공연행사'],
+      solo: ['관광지','레포츠','쇼핑','문화시설']
+    }
+
+    function labelFor(key){ return key==='family' ? '가족' : key==='date' ? '데이트' : key==='friends' ? '친구' : '혼행' }
+
+    async function generate(){
+      const files = ['부산_관광지.json','부산_레포츠.json','부산_문화시설.json','부산_쇼핑.json','부산_숙박.json','부산_축제공연행사.json','부산_여행코스.json']
+      const all = []
+      for (const f of files){
+        try{
+          const res = await fetch(`/docs/data/${f}`)
+          if(!res.ok) continue
+          const j = await res.json()
+          const items = j.items || []
+          items.forEach(it=>{
+            const lat = parseFloat(it.mapy || it.latitude || it.lat || 0)
+            const lng = parseFloat(it.mapx || it.longitude || it.lng || 0)
+            all.push({ id: it.contentid || `${f}-${(it.title||'').slice(0,10)}`, name: it.title || it.name, category: f.replace(/^부산_/, '').replace(/\.json$/,''), lat, lng, raw: it })
+          })
+        }catch(e){/*ignore*/}
+      }
+
+      const want = prefs[profile.value] || []
+      const stops = []
+      const used = new Set()
+      for(const cat of want){
+        if(stops.length>=5) break
+        const cands = all.filter(p=> (p.category||'').includes(cat) && p.lat && p.lng && !used.has(p.id))
+        for(const c of cands){ if(stops.length>=5) break; stops.push(c); used.add(c.id) }
+      }
+      if(stops.length<5){
+        for(const p of all){ if(stops.length>=5) break; if(!used.has(p.id) && p.lat && p.lng){ stops.push(p); used.add(p.id) } }
+      }
+
+      routes.value = [{ id: 'g1', title: `${labelFor(profile.value)} 추천 루트`, desc: `${labelFor(profile.value)} 분들에게 적합한 코스`, stops }]
+    }
+
+    function saveRoute(r){
+      const all = JSON.parse(localStorage.getItem('localhub-routes')||'[]')
+      all.push(r)
+      localStorage.setItem('localhub-routes', JSON.stringify(all))
+      alert('루트가 저장되었습니다.')
+    }
+
+    return { profile, routes, generate, saveRoute }
+  }
+}
+</script>
+
+<style scoped>
+.guide{padding:1rem}
+.recs{margin-top:1rem}
+.route-card{background:#fff;padding:1rem;border-radius:8px;margin-bottom:0.8rem;border:1px solid #eef2f7}
+.route-head{display:flex;justify-content:space-between;align-items:center}
+.route-stops{margin:0.6rem 0 0 1.2rem}
+.stop-name{font-weight:700}
+.stop-meta{font-size:0.9rem}
+</style>
