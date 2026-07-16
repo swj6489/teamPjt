@@ -102,10 +102,19 @@
     <div v-if="selectedEvent" class="modal" @click.self="selectedEvent=null">
       <div class="modal-card">
         <button @click="selectedEvent=null" style="float:right;border:none;background:transparent">✕</button>
-        <h3>{{ selectedEvent.title }}</h3>
-        <div><strong>기간:</strong> {{ selectedEvent.start }} ~ {{ selectedEvent.end }}</div>
-        <div style="margin-top:0.5rem">{{ selectedEvent.program || selectedEvent.overview || selectedEvent.usetimefestival || '' }}</div>
-        <div style="margin-top:0.5rem"><strong>갱신일:</strong> {{ selectedEvent.modified }}</div>
+        <h3 style="margin-bottom:0.4rem">{{ selectedEvent.title }}</h3>
+        <div class="event-detail-meta" style="margin-bottom:0.6rem">
+          <div><strong>기간:</strong> {{ selectedEvent.start }} ~ {{ selectedEvent.end }}</div>
+          <div v-if="selectedEvent.raw && (selectedEvent.raw.eventplace || selectedEvent.raw.addr1)" style="margin-top:0.25rem"><strong>장소:</strong> {{ selectedEvent.raw.eventplace || selectedEvent.raw.addr1 }}</div>
+          <div v-if="selectedEvent.raw && (selectedEvent.raw.tel || selectedEvent.raw.phone)" style="margin-top:0.25rem"><strong>전화:</strong> {{ selectedEvent.raw.tel || selectedEvent.raw.phone }}</div>
+          <div style="margin-top:0.25rem"><strong>갱신일:</strong> {{ selectedEvent.modified }}</div>
+        </div>
+        <div class="event-description" style="margin-top:0.25rem;color:#374151;line-height:1.6;white-space:pre-wrap">
+          {{ selectedEvent.program || selectedEvent.overview || selectedEvent.usetimefestival || (selectedEvent.raw && (selectedEvent.raw.overview||selectedEvent.raw.program||selectedEvent.raw.usetimefestival)) || '상세 정보가 없습니다.' }}
+        </div>
+        <div style="margin-top:0.6rem;color:var(--muted);font-size:0.9rem">
+          <em>출처: {{ selectedEvent.source || (selectedEvent.raw && selectedEvent.raw._source) || '데이터' }}</em>
+        </div>
       </div>
     </div>
   </div>

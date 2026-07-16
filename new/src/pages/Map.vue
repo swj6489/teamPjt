@@ -1,13 +1,16 @@
 <template>
   <div class="map-page page-bg-frame">
-    <div class="controls card" style="display:flex;align-items:center;gap:0.75rem">
-      <input class="input" v-model="searchQuery" @keyup.enter="performSearch" placeholder="장소 검색 (이름 입력)" />
-      <button class="btn ghost" @click="performSearch">검색</button>
-      <button class="btn" @click="clearSearch">초기화</button>
-      <div style="display:flex;gap:0.5rem;margin-left:auto;flex-wrap:wrap">
-        <button v-for="cat in categories" :key="cat" @click="selectCategory(cat)" class="btn ghost" :class="{active:cat===activeCategory}">{{ cat }}</button>
-        <button class="btn ghost" @click="selectCategory('All')">All</button>
+    <div class="controls" style="display:grid;grid-template-columns:1fr 340px;align-items:center;gap:0.5rem">
+      <div class="card controls-inner" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 0.8rem">
+        <input class="input" v-model="searchQuery" @keyup.enter="performSearch" placeholder="장소 검색 (이름 입력)" />
+        <button class="btn ghost" @click="performSearch">검색</button>
+        <button class="btn" @click="clearSearch">초기화</button>
+        <div style="display:flex;gap:0.4rem;margin-left:0.4rem;flex-wrap:wrap">
+          <button v-for="cat in categories" :key="cat" @click="selectCategory(cat)" class="btn ghost" :class="{active:cat===activeCategory}">{{ cat }}</button>
+          <button class="btn ghost" @click="selectCategory('All')">All</button>
+        </div>
       </div>
+      <div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 340px;gap:1rem;align-items:start">
       <div>

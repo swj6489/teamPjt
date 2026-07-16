@@ -14,9 +14,15 @@
     </header>
 
     <section class="dash-grid">
-      <div class="card">
+      <div class="card poi-card">
         <h4>POI 카테고리 분포</h4>
-        <canvas id="poiChart"></canvas>
+        <div class="poi-chart-wrap">
+          <canvas id="poiChart"></canvas>
+        </div>
+        <div class="poi-top-list" style="margin-top:8px;font-size:0.95rem;color:var(--muted)">
+          <div v-if="poiTop && poiTop.length >= 1">카테고리 분포 1위 : {{ poiTop[0].name }} ({{ poiTop[0].count }})</div>
+          <div v-if="poiTop && poiTop.length >= 2">카테고리 분포 2위 : {{ poiTop[1].name }} ({{ poiTop[1].count }})</div>
+        </div>
       </div>
       <div class="card">
         <h4>최근 게시글 월별 분포</h4>
@@ -36,6 +42,7 @@ export default {
   setup(){
     const stats = ref({ totalPosts:0, totalComments:0, totalLikes:0 })
     const totalPOI = ref(0)
+    const poiTop = ref([])
 
     let poiChart = null
     let postsChart = null
@@ -77,8 +84,25 @@ export default {
       renderPostsChart({months,postsCounts,commentsCounts,likesCounts})
     }
 
-    function renderPoiChart(map){ const labels=Object.keys(map); const data=labels.map(l=>map[l]); const ctx=document.getElementById('poiChart'); if(!ctx) return; if(poiChart){ try{ poiChart.destroy() }catch(e){} } poiChart = new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:labels.map((_,i)=>`hsl(${(i*50)%360}deg 70% 55%)`)}]}})
+    function renderPoiChart(map){
+      const labels=Object.keys(map)
+      const data=labels.map(l=>map[l])
+      const ctx=document.getElementById('poiChart')
+      if(!ctx) return
+      if(poiChart){ try{ poiChart.destroy() }catch(e){} }
+      poiChart = new Chart(ctx,{
+        type:'doughnut',
+        data:{labels,datasets:[{data,backgroundColor:labels.map((_,i)=>`hsl(${(i*50)%360}deg 70% 55%)`)}]},
+        options: { responsive:true, maintainAspectRatio:false, layout: { padding: { top:8, right:8, left:8, bottom:8 } } }
+      })
+      // compute top 2 categories
+      try{
+        const pairs = labels.map((l,i)=>({ name:l, count: data[i] || 0 }))
+        pairs.sort((a,b)=>b.count - a.count)
+        poiTop.value = pairs.slice(0,2)
+      }catch(e){ poiTop.value = [] }
     }
+
 
     function renderPostsChart(md){
       const labels = md.months.map(m=>`${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,'0')}`)
@@ -97,7 +121,9 @@ export default {
         },
         options:{
           responsive:true,
+          maintainAspectRatio:false,
           interaction:{mode:'index',intersect:false},
+          layout:{ padding: { top:8, right:10, left:6, bottom:8 } },
           scales:{ y:{ beginAtZero:true } }
         }
       })
@@ -113,7 +139,14 @@ export default {
 .dash-hero{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem}
 .dash-stats{display:flex;gap:0.75rem}
 .stat{min-width:120px;text-align:center}
-.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.dash-grid{display:grid;grid-template-columns:1fr 420px;gap:1rem;margin-top:1rem}
 .card{padding:1rem;border-radius:10px}
+.dash-grid .card{padding:0.6rem}
+.card canvas{width:100%;display:block}
+.poi-card{display:flex;flex-direction:column;justify-content:space-between}
+.poi-chart-wrap{width:100%;aspect-ratio:1/1;max-width:100%;display:flex;align-items:center;justify-content:center;flex:1}
+.poi-chart-wrap canvas{width:100%;height:100%;display:block}
+.poi-top-list{margin-top:8px;font-size:0.95rem;color:var(--muted);text-align:left}
+#postsChart{height:280px;max-height:400px}
 </style>
 

@@ -173,7 +173,7 @@ return { poiCounts, totalPOI, totalPosts, totalBookmarks, recentPosts, openPost,
 </script>
 
 <style scoped>
-.home{display:flex;flex-direction:column;gap:1rem}
+.home{display:flex;flex-direction:column;gap:1.2rem}
 /* Busan (Gwangan Bridge) photo background from assets */
 .home{background-image: linear-gradient(rgba(0,18,36,0.25), rgba(0,18,36,0.05)), url('/docs/data/image.png');
 background-size:cover;background-position:center;background-attachment:fixed;padding:1rem}
@@ -185,29 +185,36 @@ background-size:cover;background-position:center;background-attachment:fixed;pad
 .btn.primary{background:var(--primary);color:#fff;border:none}
 .stats{display:flex;gap:1rem}
 .stat{background:#fff;padding:0.75rem;border-radius:8px;min-width:100px;text-align:center}
-.categories .cats{display:flex;gap:0.5rem;flex-wrap:wrap}
-.cat{background:#fff;padding:0.6rem 0.8rem;border-radius:8px}
+.categories .cats{display:flex;gap:0.8rem;flex-wrap:wrap}
+.categories h3{margin-bottom:0.6rem}
+.cat{background:#fff;padding:0.75rem 0.9rem;border-radius:8px}
 .cat .count{display:block;font-weight:700;color:var(--primary)}
-.recent ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.4rem}
+.recent ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.6rem}
+.recent h3{margin-bottom:0.6rem}
 .recent .meta{color:var(--muted);font-size:0.85rem}
 
-.recent-box{background:#fff;border:1px solid #e6eef2;border-radius:10px;padding:0.6rem;max-height:220px;overflow:auto;box-shadow:0 6px 18px rgba(2,6,23,0.04)}
+.recent-box{background:#fff;border:1px solid #e6eef2;border-radius:10px;padding:0.75rem;max-height:220px;overflow:auto;box-shadow:0 6px 18px rgba(2,6,23,0.04)}
 .recent-item{display:flex;justify-content:space-between;align-items:flex-start;padding:0.6rem;border-bottom:1px solid #f1f5f8}
 .recent-item:last-child{border-bottom:none}
 .recent-item a{color:var(--text);text-decoration:none;font-weight:600}
 .no-posts{background:#fff;border:1px dashed #e6eef2;border-radius:10px;padding:0.8rem;color:#475569}
 
-.recommend .recs{display:flex;gap:0.6rem;flex-wrap:wrap}
-.rec{background:#fff;padding:0.5rem;border-radius:8px;width:calc(16.66% - 0.5rem);box-shadow:0 4px 10px rgba(2,6,23,0.04);text-align:center}
+.recommend h3{margin-bottom:0.6rem}
+.recommend .recs{display:grid;grid-template-columns:repeat(6,1fr);gap:0.6rem}
+.rec{background:#fff;padding:0.6rem;border-radius:8px;width:100%;box-shadow:0 4px 10px rgba(2,6,23,0.04);text-align:center}
 .rec-image img{width:100%;height:84px;object-fit:cover;border-radius:6px}
 .rec-title{margin-top:0.45rem;font-weight:600;font-size:0.95rem}
 
 .today-events-section{margin-top:0.6rem}
-.today-events-list{background:#fff;border:1px solid #eef2f7;border-radius:10px;padding:0.6rem}
+.today-events-section h3{margin-bottom:0.6rem}
+.today-events-list{background:#fff;border:1px solid #eef2f7;border-radius:10px;padding:0.75rem}
 .today-ev-item{padding:0.5rem;border-bottom:1px dashed #f1f5f9}
 .today-ev-item:last-child{border-bottom:none}
 .ev-title{font-weight:700}
 .ev-meta{color:#6b7280;font-size:0.9rem;margin-top:0.25rem}
 
-@media (max-width:900px){.rec{width:48%}}
+@media (max-width:900px){
+  .recommend .recs{grid-template-columns:repeat(2,1fr)}
+  .rec{width:100%}
+}
 </style>
