@@ -15,7 +15,6 @@ const dataCache = {}
 
 function loadCategoryData(category) {
   if (dataCache[category]) return dataCache[category]
-
   const fileMap = {
     '관광지': '부산_관광지.json',
     '레포츠': '부산_레포츠.json',
@@ -29,16 +28,30 @@ function loadCategoryData(category) {
   const fileName = fileMap[category]
   if (!fileName) return null
 
-  try {
-    const filePath = path.resolve(__dirname, '..', 'docs', 'data', fileName)
-    const content = fs.readFileSync(filePath, 'utf-8')
-    const data = JSON.parse(content)
-    dataCache[category] = data
-    return data
-  } catch (e) {
-    console.log('[data] failed to load', category, e.message)
-    return null
+  // Try multiple likely locations for data depending on deployment:
+  const candidates = [
+    path.resolve(__dirname, '..', 'docs', 'data', fileName),     // repo layout
+    path.resolve(process.cwd(), 'docs', 'data', fileName),        // current working dir
+    path.resolve(process.cwd(), 'public', 'data', fileName),      // Vite public folder (after build)
+    path.resolve(__dirname, '..', 'dist', 'data', fileName)       // possible dist packaging
+  ]
+
+  for (const filePath of candidates) {
+    try {
+      if (!fs.existsSync(filePath)) continue
+      const content = fs.readFileSync(filePath, 'utf-8')
+      const data = JSON.parse(content)
+      dataCache[category] = data
+      console.log(`[data] loaded ${fileName} from ${filePath}`)
+      return data
+    } catch (e) {
+      console.warn(`[data] failed to parse ${filePath}:`, e && e.message)
+      continue
+    }
   }
+
+  console.warn('[data] failed to load any candidate for', category, fileName)
+  return null
 }
 
 function detectCategory(text) {
