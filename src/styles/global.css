@@ -1,0 +1,95 @@
+:root{
+  --bg:#f5f7fb;
+  --card:rgba(255,255,255,0.88);
+  --muted:#6b7280;
+  --text:#0f172a;
+  --primary:#06b6d4;
+  --accent:#0ea5a3;
+  --radius:10px;
+  --shadow: 0 6px 20px rgba(2,6,23,0.06);
+}
+
+*{box-sizing:border-box}
+html,body,#app{height:100%;margin:0;color:var(--text);font-family:'Noto Sans KR',Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+/* make app container transparent so body background image shows through */
+#app{background:transparent}
+/* Site background image */
+body{
+  background-image: url('/docs/data/image.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+}
+body{line-height:1.45;-webkit-font-smoothing:antialiased}
+
+h1,h2,h3,h4,h5{margin:0;color:var(--text);font-weight:700}
+h1{font-size:1.9rem}
+h2{font-size:1.3rem}
+
+a{color:inherit;text-decoration:none}
+
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:1rem}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:0.5rem;border-radius:8px;padding:0.5rem 0.9rem;border:1px solid #e6eef0;background:#ffffff;cursor:pointer}
+.btn.primary{background:var(--primary);color:#fff}
+.btn.ghost{background:transparent;border:1px solid rgba(15,23,42,0.06)}
+
+/* Active states for likes and bookmarks */
+.btn.liked{background:#ef4444;color:#fff;box-shadow:0 6px 12px rgba(239,68,68,0.12)}
+.btn.liked:hover{background:#dc2626}
+
+.btn.booked{background:#ef4444;color:#fff;box-shadow:0 6px 12px rgba(239,68,68,0.12)}
+.btn.booked:hover{background:#dc2626}
+
+/* small bookmark variants used in lists and map */
+.bookmark-small{padding:0.2rem 0.4rem;border-radius:6px}
+.bookmark-small.booked{background:#ef4444;color:#fff}
+.poi-bookmark.booked{background:#ef4444;color:#fff}
+
+/* Board-specific: make bookmarked posts show red like likes */
+.post-list .btn.booked{background:#ef4444;color:#fff;box-shadow:0 6px 12px rgba(239,68,68,0.12)}
+.post-list .btn.booked:hover{background:#dc2626}
+
+/* Inputs */
+input,textarea,select{font-family:inherit;padding:0.6rem;border:1px solid #e6eef0;border-radius:8px;outline:none}
+input:focus,textarea:focus,select:focus{box-shadow:0 4px 14px rgba(14,165,163,0.08);border-color:var(--accent)}
+
+/* Nav */
+.nav-item{padding:0.5rem 0.9rem;border-radius:10px}
+.nav-item.router-link-active{background:rgba(14,165,163,0.12);color:var(--accent)}
+
+/* Cards grid */
+.grid{display:grid;gap:1rem}
+
+/* Small utilities */
+.muted{color:var(--muted)}
+.count{color:var(--accent);font-weight:700}
+
+/* Responsive */
+@media (max-width:900px){.board-grid{grid-template-columns:1fr}.nav{display:none}}
+
+/* Apply provided sea background to pages that use page-bg-frame or calendar-page */
+.page-bg-frame, .calendar-page, .home, .guide, .bookmarks {
+  background-image: linear-gradient(rgba(0,18,36,0.10), rgba(0,18,36,0.02)), url('/docs/data/image.png');
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+}
+
+/* ensure cards remain readable */
+.page-bg-frame .card, .calendar-page .card, .home .card, .guide .card, .bookmarks .card { background: rgba(255,255,255,0.88) }
+
+/* Make page content frames narrower and centered so background shows at edges */
+.page-bg-frame{padding:2.5rem 6rem}
+.page-bg-frame > *{max-width:1200px;margin-left:auto;margin-right:auto}
+.page-bg-frame .card{max-width:1100px;margin-left:auto;margin-right:auto}
+/* Restore full-width for the map page so the map column is not constrained */
+/* Ensure map page uses full-width layout (override page-bg-frame centering) */
+.page-bg-frame.map-page { padding-left: 0 !important; padding-right: 0 !important }
+.page-bg-frame.map-page > * { max-width: none !important; margin-left: 0 !important; margin-right: 0 !important }
+.page-bg-frame.map-page .card { max-width: none !important }
+
+/* Slightly reduce overlay on these pages so background is more visible */
+.page-bg-frame, .guide, .bookmarks { background-image: linear-gradient(rgba(0,18,36,0.06), rgba(0,18,36,0.02)), url('/docs/data/image.png') }

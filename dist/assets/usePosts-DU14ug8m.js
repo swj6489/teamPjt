@@ -1,0 +1,1 @@
+var e=`localhub-posts`;function t(){try{let t=localStorage.getItem(e);return t?JSON.parse(t):[]}catch(e){return console.error(`loadPosts error`,e),[]}}var n=null;function r(t){n&&clearTimeout(n),n=setTimeout(()=>{try{localStorage.setItem(e,JSON.stringify(t))}catch(e){console.error(`savePosts error`,e)}n=null},150)}export{r as n,t};
