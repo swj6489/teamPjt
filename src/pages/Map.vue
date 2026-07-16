@@ -94,7 +94,7 @@ export default {
       const all = []
       for (const file of dataFiles) {
         try {
-          const res = await fetch(`/docs/data/${file}`)
+          const res = await fetch(`/data/${file}`)
           if (!res.ok) continue
           const json = await res.json()
           const items = Array.isArray(json.items) ? json.items : []

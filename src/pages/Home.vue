@@ -90,7 +90,7 @@ export default {
       const map = {}
       let sum =0
       for(const f of files){
-        try{ const res = await fetch(`/docs/data/${f}`); if(!res.ok) continue; const j=await res.json(); const cnt = j.total || (j.items && j.items.length) || 0; const cat = f.replace(/^부산_/,'').replace(/\.json$/,''); map[cat]=cnt; sum+=cnt }catch(e){}
+        try{ const res = await fetch(`/data/${f}`); if(!res.ok) continue; const j=await res.json(); const cnt = j.total || (j.items && j.items.length) || 0; const cat = f.replace(/^부산_/,'').replace(/\.json$/,''); map[cat]=cnt; sum+=cnt }catch(e){}
       }
       poiCounts.value = map
       totalPOI.value = sum
@@ -128,7 +128,7 @@ export default {
       const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate())
       for(const f of files){
         try{
-          const res = await fetch(`/docs/data/${f}`)
+          const res = await fetch(`/data/${f}`)
           if(!res.ok) continue
           const j = await res.json()
           const items = j.items || []
@@ -151,7 +151,7 @@ export default {
 
     async function loadRecs(){
       try{
-        const res = await fetch('/docs/data/부산_관광지.json')
+        const res = await fetch('/data/부산_관광지.json')
         if(!res.ok) return
         const j = await res.json()
         const items = Array.isArray(j.items) ? j.items : (j.items||[])

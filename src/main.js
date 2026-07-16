@@ -6,7 +6,7 @@ import './styles/global.css'
 try{
 	const setBg = (el)=>{
 		if(!el) return
-		el.style.backgroundImage = `url(/docs/data/image.png)`
+		el.style.backgroundImage = `url(/data/image.png)`
 		el.style.backgroundRepeat = 'no-repeat'
 		el.style.backgroundSize = 'cover'
 		el.style.backgroundPosition = 'center top'

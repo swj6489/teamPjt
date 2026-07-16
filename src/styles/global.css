@@ -15,7 +15,7 @@ html,body,#app{height:100%;margin:0;color:var(--text);font-family:'Noto Sans KR'
 #app{background:transparent}
 /* Site background image */
 body{
-  background-image: url('/docs/data/image.png');
+  background-image: url('/data/image.png');
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center top;

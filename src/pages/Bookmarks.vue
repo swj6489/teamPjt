@@ -103,7 +103,7 @@ export default {
       try{
         const files = ['부산_관광지.json','부산_레포츠.json','부산_문화시설.json','부산_쇼핑.json','부산_숙박.json','부산_여행코스.json','부산_축제공연행사.json']
         for(const f of files){
-          const res = await fetch(`/docs/data/${f}`)
+          const res = await fetch(`/data/${f}`)
           if(!res.ok) continue
           const j = await res.json()
           const itemsArr = j.items||[]

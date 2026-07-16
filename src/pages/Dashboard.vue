@@ -50,7 +50,7 @@ export default {
     async function loadPOIcounts(){
       const files = ['부산_관광지.json','부산_레포츠.json','부산_문화시설.json','부산_쇼핑.json','부산_숙박.json','부산_여행코스.json','부산_축제공연행사.json']
       let sum=0; const map={}
-      for(const f of files){ try{ const r=await fetch(`/docs/data/${f}`); if(!r.ok) continue; const j=await r.json(); const cnt=j.total||(j.items&&j.items.length)||0; const cat=f.replace(/^부산_/,'').replace(/\.json$/,''); map[cat]=cnt; sum+=cnt }catch(e){} }
+      for(const f of files){ try{ const r=await fetch(`/data/${f}`); if(!r.ok) continue; const j=await r.json(); const cnt=j.total||(j.items&&j.items.length)||0; const cat=f.replace(/^부산_/,'').replace(/\.json$/,''); map[cat]=cnt; sum+=cnt }catch(e){} }
       totalPOI.value = sum
       renderPoiChart(map)
     }

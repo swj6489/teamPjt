@@ -101,7 +101,7 @@ export default {
       const all = []
       for (const f of files){
         try{
-          const res = await fetch(`/docs/data/${f}`)
+          const res = await fetch(`/data/${f}`)
           if(!mounted) return
           if(!res.ok) continue
           const j = await res.json()
