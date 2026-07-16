@@ -1,5 +1,5 @@
 <template>
-  <div class="map-page">
+  <div class="map-page page-bg-frame">
     <div class="controls card" style="display:flex;align-items:center;gap:0.75rem">
       <input class="input" v-model="searchQuery" @keyup.enter="performSearch" placeholder="장소 검색 (이름 입력)" />
       <button class="btn ghost" @click="performSearch">검색</button>
@@ -16,52 +16,41 @@
       <aside class="card" style="padding:0.75rem">
         <h4 v-if="!searchQuery">POI 목록 <span class="count">({{ filteredPOIs.length }})</span></h4>
         <h4 v-else>검색 결과 <span class="count">({{ searchResults.length }})</span></h4>
-        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.5rem;max-height:60vh;overflow:auto">
-          <li v-for="p in (searchQuery ? searchResults : filteredPOIs)" :key="p.id" @click="openPOIModal(p)" style="padding:0.5rem;border-radius:8px;cursor:pointer;border:1px solid #f1f5f9;display:flex;flex-direction:column">
+        <ul class="poi-list" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.35rem;max-height:40vh;overflow:auto">
+          <li v-for="p in (searchQuery ? searchResults : filteredPOIs)" :key="p.id" @click="openPOIModal(p)" class="poi-row">
             <div style="display:flex;align-items:center;justify-content:space-between">
-              <div style="font-weight:600">{{ p.name }}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.25rem;color:var(--muted);font-size:0.85rem">
-              <div>{{ p.category }}</div>
+              <div style="font-weight:600;font-size:0.95rem">{{ p.name }}</div>
               <button class="bookmark-small" @click.stop="togglePoiBookmark(p)" :class="{booked:isPoiBookmarked(p.id)}">🔖</button>
             </div>
+            <div style="margin-top:0.18rem;color:var(--muted);font-size:0.82rem">{{ p.category }}</div>
           </li>
         </ul>
-      </aside>
-    </div>
-    <div v-if="selectedPOI" class="modal" @click.self="closePOIModal">
-      <div class="modal-card card" style="max-width:820px;">
-        <button class="close" @click="closePOIModal">✕</button>
-        <div class="modal-body">
-          <div class="modal-image">
-            <img v-if="selectedPOI.image" :src="selectedPOI.image" alt="" />
-            <div v-else class="muted">이미지 없음</div>
 
-            <div class="image-meta">
-              <div style="margin-top:0.6rem" class="directions-small">
-                <button class="btn small" @click.prevent="openDirections('driving')">🚗 길찾기</button>
-                <button class="btn small" @click.prevent="openDirections('transit')">🚇 대중교통</button>
-                <button class="btn small" @click.prevent="openDirections('walking')">🚶 도보</button>
-              </div>
-
-              <div class="meta-block" style="margin-top:0.8rem">
-                <div class="meta-row"><div class="meta-label">주소</div><div class="meta-value muted addr">{{ selectedPOI.addr }}</div></div>
-                <div style="margin-top:0.5rem" class="meta-row"><div class="meta-label">전화</div><div class="meta-value muted tel">{{ selectedPOI.tel || '정보 없음' }}</div></div>
-                <div style="margin-top:0.6rem" class="meta-overview"><strong>상세 설명</strong><div class="muted" style="margin-top:0.35rem">{{ selectedPOI.overview }}</div></div>
-              </div>
+        <!-- Inline POI detail below the list -->
+        <div v-if="selectedPOI" class="poi-detail card" style="margin-top:0.6rem;padding:0.6rem">
+          <div style="display:flex;gap:0.6rem;align-items:flex-start">
+            <div style="flex:0 0 96px">
+              <img v-if="selectedPOI.image" :src="selectedPOI.image" alt="" style="width:96px;height:72px;object-fit:cover;border-radius:6px" />
+              <div v-else class="muted" style="width:96px;height:72px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:#f8fafc">이미지 없음</div>
             </div>
-          </div>
-
-          <div class="modal-info">
-            <h3 class="poi-title">{{ selectedPOI.name }}</h3>
-            <div class="poi-cat-row">
-              <div class="muted poi-cat">{{ selectedPOI.category }}</div>
-              <button class="btn poi-bookmark" @click.stop="togglePoiBookmark(selectedPOI)" :class="{booked:isPoiBookmarked(selectedPOI.id)}">🔖 북마크</button>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700">{{ selectedPOI.name }}</div>
+              <div class="muted" style="margin-top:0.2rem;font-size:0.9rem">{{ selectedPOI.category }} {{ selectedPOI.raw && selectedPOI.raw.eventplace ? '· ' + selectedPOI.raw.eventplace : '' }}</div>
+              <div style="margin-top:0.45rem;color:#0f172a;font-size:0.92rem">{{ selectedPOI.overview }}</div>
+              <div style="margin-top:0.45rem;color:var(--muted);font-size:0.9rem">
+                <div><strong>주소:</strong> {{ selectedPOI.addr || '정보 없음' }}</div>
+                <div style="margin-top:0.25rem"><strong>전화:</strong> {{ selectedPOI.tel || '정보 없음' }}</div>
+              </div>
+              <div style="margin-top:0.5rem;display:flex;gap:0.5rem">
+                <button class="btn small" @click.prevent="openDirections('driving')">🚗 길찾기</button>
+                <button class="btn" style="margin-left:auto" @click.stop="togglePoiBookmark(selectedPOI)" :class="{booked:isPoiBookmarked(selectedPOI.id)}">🔖 북마크</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </aside>
     </div>
+    <!-- inline detail used instead of modal; modal removed to avoid covering POI list -->
   </div>
 </template>
 
@@ -161,6 +150,8 @@ export default {
       // initialize cluster group
       clusterGroup = L.markerClusterGroup()
       map.value.addLayer(clusterGroup)
+      // ensure map resizes correctly after CSS/layout changes
+      setTimeout(()=>{ try{ map.value.invalidateSize() }catch(e){} }, 200)
     }
 
     const clearMarkers = () => {
@@ -188,7 +179,20 @@ export default {
         const end = Math.min(i + BATCH, toRender.length)
         for(; i<end; i++){
           const p = toRender[i]
-          const m = L.marker([p.lat, p.lng]).bindPopup(`<b>${p.name}</b><br/>${p.category}`)
+          const popupHtml = `
+            <div style="min-width:200px">
+              <div style="font-weight:700;margin-bottom:4px">${p.name}</div>
+              <div style="color:var(--muted);font-size:0.9rem;margin-bottom:6px">${p.category}</div>
+              <div style="font-size:0.9rem;color:#0f172a"><strong>주소:</strong> ${p.addr || '정보 없음'}</div>
+              <div style="font-size:0.9rem;color:var(--muted);margin-bottom:6px"><strong>전화:</strong> ${p.tel || '정보 없음'}</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=driving" target="_blank" class="btn small">🚗 길찾기</a>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=transit" target="_blank" class="btn small">🚌 대중교통</a>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=walking" target="_blank" class="btn small">🚶 도보</a>
+                <a href="#" onclick="window.__togglePoiBookmark && window.__togglePoiBookmark('${p.id}');return false;" class="btn small" style="margin-left:auto">🔖 북마크</a>
+              </div>
+            </div>`
+          const m = L.marker([p.lat, p.lng]).bindPopup(popupHtml)
           m.on('click', () => openPOIModal(p))
           markers.value.push(m)
           if (clusterGroup) clusterGroup.addLayer(m)
@@ -230,6 +234,20 @@ export default {
       if(isPoiBookmarked(id)) poiBookmarks.value = poiBookmarks.value.filter(x=>x!==id)
       else poiBookmarks.value.push(id)
       savePoiBookmarks()
+    }
+
+    // expose a small global helper so popup HTML can trigger bookmarking
+    if (typeof window !== 'undefined') {
+      window.__togglePoiBookmark = (id) => {
+        try {
+          const target = pois.value.find(x => x.id === id)
+          if (target) {
+            togglePoiBookmark(target)
+            // update markers/popups to reflect new bookmark state
+            try { renderMarkers() } catch(e){}
+          }
+        } catch (e) {}
+      }
     }
 
     // Try to extract best available overview and tel from raw data or nearby items
@@ -311,7 +329,7 @@ export default {
       tryOpenFromQuery()
       loadPoiBookmarks()
       // defer marker rendering slightly to avoid blocking transition
-      setTimeout(()=>{ renderMarkers() }, 100)
+      setTimeout(()=>{ renderMarkers(); try{ map.value.invalidateSize() }catch(e){} }, 200)
     })
 
     const filteredPOIs = computed(() => {
@@ -392,18 +410,20 @@ export default {
     return { categories, activeCategory, selectCategory, filteredPOIs, flyToPOI, selectedPOI, openPOIModal, closePOIModal, openDirections, nearby, searchQuery, searchResults, performSearch, clearSearch, isPoiBookmarked, togglePoiBookmark }
   }
 }
-</script>
+ </script>
 
 <style scoped>
-.map-page{display:grid;grid-template-columns:1fr 320px;gap:1rem;padding:1rem}
+.map-page{display:grid;grid-template-columns:1fr 360px;gap:1rem;padding:1rem 1.5rem}
 .controls{grid-column:1/-1;display:flex;gap:0.5rem;margin-bottom:0.5rem}
 .controls button{padding:0.4rem 0.6rem;border-radius:6px;border:1px solid #e5e7eb;background:#fff}
 .controls button.active{background:rgba(25,118,210,0.08);color:#1976d2;font-weight:600}
-.map{height:60vh;border-radius:8px}
-.poi-list{background:#fff;padding:0.5rem;border-radius:8px;height:60vh;overflow:auto}
-.poi-list ul{padding:0;margin:0;list-style:none}
-.poi-list li{padding:0.5rem;border-bottom:1px solid #f1f5f9;cursor:pointer}
-.poi-list li:hover{background:#f8fafc}
+.map{width:100%;border-radius:8px}
+/* make the map area square and reasonably large for usability */
+#map{aspect-ratio:1/1;width:100%;min-height:480px;max-width:100%;height:auto !important}
+.poi-list{background:#fff;padding:0.4rem;border-radius:8px;max-height:40vh;overflow:auto}
+.poi-row{padding:0.45rem;border-bottom:1px solid #f1f5f9;cursor:pointer;border-radius:6px}
+.poi-row:hover{background:#fbfdff}
+.poi-detail{background:#fff;border:1px solid #eef2f7;border-radius:8px}
 @media (max-width:900px){.map-page{grid-template-columns:1fr;}.poi-list{height:35vh}.map{height:40vh}}
 
 .modal-body{display:flex;gap:1rem;align-items:flex-start}

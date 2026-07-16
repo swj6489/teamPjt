@@ -1,5 +1,5 @@
 <template>
-  <div class="guide">
+  <div class="guide page-bg-frame">
     <h2>맞춤형 가이드</h2>
     <label for="profile-select">프로필 선택:</label>
     <select id="profile-select" v-model="profile">
@@ -17,7 +17,13 @@
         <div class="route-head">
           <div>
             <strong>{{ r.title }}</strong>
-            <div class="muted">{{ r.desc }}</div>
+              <div class="muted">{{ r.desc }}</div>
+              <div style="margin-top:0.25rem;font-size:0.9rem">
+                <span style="margin-right:0.6rem">총 거리: {{ r.totalKm || 0 }} km</span>
+                <span style="margin-right:0.6rem">예상 소요: {{ r.estHours || 0 }} 시간</span>
+                <span v-if="r.feasible" style="color:green;font-weight:700">실행 가능</span>
+                <span v-else style="color:#b91c1c;font-weight:700">비실행 (거리 초과)</span>
+              </div>
           </div>
           <div>
             <button class="btn" @click="saveRoute(r)">루트 저장</button>
@@ -57,6 +63,37 @@ export default {
     onMounted(()=>{ mounted = true; routes.value = [] })
     onUnmounted(()=>{ mounted = false })
 
+    function haversine(a,b){
+      const toRad = v=> v*Math.PI/180
+      const R = 6371 // km
+      const dLat = toRad(b.lat - a.lat)
+      const dLon = toRad(b.lng - a.lng)
+      const lat1 = toRad(a.lat); const lat2 = toRad(b.lat)
+      const sinDlat = Math.sin(dLat/2), sinDlon = Math.sin(dLon/2)
+      const c = 2 * Math.asin(Math.sqrt(sinDlat*sinDlat + Math.cos(lat1)*Math.cos(lat2)*sinDlon*sinDlon))
+      return R*c
+    }
+
+    function totalDistanceKm(stops){
+      let d=0
+      for(let i=1;i<stops.length;i++) d+=haversine(stops[i-1], stops[i])
+      return Math.round(d*10)/10
+    }
+
+    function nearestNeighborOrder(points, startIndex=0){
+      if(!points || points.length<=1) return points.slice()
+      const pts = points.slice()
+      const out = []
+      let idx = startIndex % pts.length
+      out.push(pts[idx]); pts.splice(idx,1)
+      while(pts.length){
+        let best=-1; let bestd=1e9
+        for(let i=0;i<pts.length;i++){ const dd=haversine(out[out.length-1], pts[i]); if(dd<bestd){bestd=dd;best=i}} 
+        out.push(pts[best]); pts.splice(best,1)
+      }
+      return out
+    }
+
     async function generate(){
       if(!mounted) return
       routes.value = []
@@ -79,43 +116,89 @@ export default {
       }
 
       const want = prefs[profile.value] || []
-      const stops = []
-      const used = new Set()
-      for(const cat of want){
-        if(stops.length>=5) break
-        const cands = all.filter(p=> (p.category||'').includes(cat) && p.lat && p.lng && !used.has(p.id))
-        for(const c of cands){ if(stops.length>=5) break; stops.push(c); used.add(c.id) }
-      }
-      if(stops.length<5){
-        for(const p of all){ if(stops.length>=5) break; if(!used.has(p.id) && p.lat && p.lng){ stops.push(p); used.add(p.id) } }
-      }
+      const maxStops = 5
 
-      // produce multiple route variants (2~3) by varying selection strategy
-      const makeStops = (allList, wantOrder, maxStops=5) => {
-        const picked = []
-        const usedIds = new Set()
-        for(const cat of wantOrder){
-          if(picked.length>=maxStops) break
-          const cands = allList.filter(p=> (p.category||'').includes(cat) && p.lat && p.lng && !usedIds.has(p.id))
-          for(const c of cands){ if(picked.length>=maxStops) break; picked.push(c); usedIds.add(c.id) }
+      // helper: pick random candidate for each category but enforce at most one 숙박 per route
+      const pickForCategory = (category, pool, limit=maxStops, allowStay=true, currentStops=[])=>{
+        const cands = pool.filter(p=> (p.category||'').includes(category) && p.lat && p.lng)
+        const res = []
+        const shuffled = cands.sort(()=>Math.random()-0.5)
+        // count existing 숙박 in currentStops
+        const stayCount = (currentStops||[]).filter(x=> (x.category||'').includes('숙박')).length
+        for(const s of shuffled){
+          if(res.length>=limit) break
+          // if candidate is 숙박 and we already have one, skip
+          if((s.category||'').includes('숙박') && (stayCount + res.filter(x=> (x.category||'').includes('숙박')).length) >= 1) continue
+          res.push(s)
         }
-        if(picked.length<maxStops){
-          for(const p of allList){ if(picked.length>=maxStops) break; if(!usedIds.has(p.id) && p.lat && p.lng){ picked.push(p); usedIds.add(p.id) } }
-        }
-        return picked
+        return res
       }
 
       const routesArr = []
       const baseWant = prefs[profile.value] || []
-      // variant 0: base preference order
-      routesArr.push({ id: `${profile.value}-${Date.now()}-0`, profile: profile.value, title: `${labelFor(profile.value)} 추천 루트`, desc: `${labelFor(profile.value)} 분들에게 적합한 코스`, stops: makeStops(all, baseWant) })
-      // variant 1: rotated preferences (alternative)
+
+      // Variant A: preference-based but choose random item per category
+      const stopsA = []
+      const usedA = new Set()
+      for(const cat of baseWant){
+        const picks = pickForCategory(cat, all, 2, true, stopsA)
+        for(const p of picks){ if(stopsA.length>=maxStops) break; if(!usedA.has(p.id)){ stopsA.push(p); usedA.add(p.id) } }
+        if(stopsA.length>=maxStops) break
+      }
+      while(stopsA.length<maxStops){ const extra = all.filter(p=>!usedA.has(p.id) && p.lat&&p.lng).sort(()=>Math.random()-0.5)[0]; if(!extra) break; stopsA.push(extra); usedA.add(extra.id) }
+      // try to order by nearest neighbor to make it feasible
+      const orderedA = nearestNeighborOrder(stopsA, 0)
+      const distA = totalDistanceKm(orderedA)
+      // dwell time per category (hours)
+      const dwell = (p)=>{ const c=(p.category||''); if(c.includes('숙박')) return 8; if(c.includes('레포츠')) return 3; if(c.includes('문화시설')) return 2; if(c.includes('축제')) return 2.5; if(c.includes('쇼핑')) return 1.5; if(c.includes('여행코스')) return 2; return 1.5 }
+      const dwellA = orderedA.reduce((s,p)=>s + (dwell(p)||1.5), 0)
+      const travelA = Math.round(distA/40*10)/10
+      const estA = Math.round((travelA + dwellA)*10)/10
+      const hasStayA = orderedA.some(p=> (p.category||'').includes('숙박'))
+      const dayLimitA = hasStayA ? 24 : 12
+      routesArr.push({ id:`${profile.value}-${Date.now()}-a`, profile:profile.value, title:`${labelFor(profile.value)} 추천 루트`, desc:'선호도 기반 추천', stops:orderedA, totalKm:distA, estHours:estA, feasible: estA <= dayLimitA })
+
+      // Variant B: rotated preference + randomness
       const rot = baseWant.slice(1).concat(baseWant.slice(0,1))
-      routesArr.push({ id: `${profile.value}-${Date.now()}-1`, profile: profile.value, title: `${labelFor(profile.value)} 추천 루트 (대안)`, desc: `다른 취향을 고려한 대안 코스`, stops: makeStops(all, rot) })
-      // variant 2: mixed/randomized alternative (only if enough items)
-      if(all.length>8){
-        const shuffled = all.slice().sort(()=>Math.random()-0.5)
-        routesArr.push({ id: `${profile.value}-${Date.now()}-2`, profile: profile.value, title: `${labelFor(profile.value)} 추천 루트 (랜덤)`, desc: `무작위로 구성한 대안 코스`, stops: shuffled.filter(p=>p.lat&&p.lng).slice(0,5) })
+      const stopsB = []
+      const usedB = new Set()
+      for(const cat of rot){
+        const picks = pickForCategory(cat, all, 2, true, stopsB)
+        for(const p of picks){ if(stopsB.length>=maxStops) break; if(!usedB.has(p.id)){ stopsB.push(p); usedB.add(p.id) } }
+        if(stopsB.length>=maxStops) break
+      }
+      while(stopsB.length<maxStops){ const extra = all.filter(p=>!usedB.has(p.id) && p.lat&&p.lng).sort(()=>Math.random()-0.5)[0]; if(!extra) break; stopsB.push(extra); usedB.add(extra.id) }
+      const orderedB = nearestNeighborOrder(stopsB, 0)
+      const distB = totalDistanceKm(orderedB)
+      const dwellB = orderedB.reduce((s,p)=>s + (dwell(p)||1.5), 0)
+      const travelB = Math.round(distB/40*10)/10
+      const estB = Math.round((travelB + dwellB)*10)/10
+      const hasStayB = orderedB.some(p=> (p.category||'').includes('숙박'))
+      const dayLimitB = hasStayB ? 24 : 12
+      routesArr.push({ id:`${profile.value}-${Date.now()}-b`, profile:profile.value, title:`${labelFor(profile.value)} 추천 루트 (대안)`, desc:'대체 선호도 + 무작위', stops:orderedB, totalKm:distB, estHours:estB, feasible: estB <= dayLimitB })
+
+      // Variant C: purely randomized but optimized order
+      if(all.length>maxStops){
+        // generate random selection but ensure at most one 숙박
+        const shuffledPool = all.slice().sort(()=>Math.random()-0.5).filter(p=>p.lat&&p.lng)
+        const shuffled = []
+        let stayIncluded = false
+        for(const p of shuffledPool){
+          if(shuffled.length>=maxStops) break
+          if((p.category||'').includes('숙박')){
+            if(stayIncluded) continue
+            stayIncluded = true
+          }
+          shuffled.push(p)
+        }
+        const orderedC = nearestNeighborOrder(shuffled, 0)
+        const distC = totalDistanceKm(orderedC)
+        const dwellC = orderedC.reduce((s,p)=>s + (dwell(p)||1.5), 0)
+        const travelC = Math.round(distC/40*10)/10
+        const estC = Math.round((travelC + dwellC)*10)/10
+        const hasStayC = orderedC.some(p=> (p.category||'').includes('숙박'))
+        const dayLimitC = hasStayC ? 24 : 12
+        routesArr.push({ id:`${profile.value}-${Date.now()}-c`, profile:profile.value, title:`${labelFor(profile.value)} 추천 루트 (랜덤)`, desc:'무작위 코스 (경로 최적화)', stops:orderedC, totalKm:distC, estHours:estC, feasible: estC <= dayLimitC })
       }
 
       routes.value = routesArr

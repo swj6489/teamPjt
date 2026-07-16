@@ -22,42 +22,35 @@
         </label>
       </div>
       <div class="legend">
-        <span class="legend-item"><b style="background:#f97316"></b> 축제/공연</span>
-        <span class="legend-item"><b style="background:#06b6d4"></b> 문화시설</span>
-        <span class="legend-item"><b style="background:#60a5fa"></b> 레포츠</span>
-        <span class="legend-item"><b style="background:#34d399"></b> 숙박</span>
+        <span class="legend-item"><b style="background:#06b6d4"></b> 축제/공연</span>
       </div>
     </header>
 
     <div class="content">
-      <aside class="side">
-        <h4>선택된 날짜</h4>
-        <div v-if="!selectedDate" class="muted">날짜를 선택하세요.</div>
-        <div v-else>
-          <div class="selected-date">{{ selectedDate.toLocaleDateString() }}</div>
-          <h5 style="margin-top:0.5rem">해당 날짜 이벤트 ({{ eventsForSelected.length }})</h5>
-          <ul style="list-style:none;padding:0;margin:0;max-height:50vh;overflow:auto">
-            <li v-for="ev in eventsForSelected" :key="ev.id" style="padding:0.4rem 0;border-bottom:1px solid #f1f5f9">
-              <div style="font-weight:600">{{ ev.title }}</div>
-              <div class="muted" style="font-size:0.85rem">{{ ev.raw && ev.raw.eventplace ? ev.raw.eventplace : '' }}</div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- removed 갱신일별 배치 section -->
-      </aside>
-
       <main class="main-cal">
         <div class="weekdays">
           <div v-for="d in ['일','월','화','수','목','금','토']" :key="d">{{ d }}</div>
         </div>
         <div class="days">
-          <div v-for="cell in calendarCells" :key="cell.key" class="day" :class="{other: !cell.currentMonth, selected: selectedDate && selectedDate.toDateString()===cell.date.toDateString(), today: isToday(cell.date)}" @click="selectedDate = cell.date">
+          <div v-for="cell in calendarCells" :key="cell.key" class="day" :class="{other: !cell.currentMonth, selected: selectedDate && selectedDate.toDateString()===cell.date.toDateString(), today: isToday(cell.date)}" @click="onDayClick(cell, $event)">
                 <div class="date">{{ cell.date.getDate() }}</div>
                 <div class="day-badges">
-                  <div v-if="cell.events.length>0" class="day-count" :style="{background: getColor(cell.events[0])}" @click.stop="selectDayEvents(cell.date, cell.events)">🎉 {{ cell.events.length }}</div>
+                  <template v-for="(ev, idx) in cell.events" :key="ev.id">
+                    <div v-if="idx < 3" class="event-badge" :style="{background: getColor(ev)}" @click.stop="openEvent(ev)">
+                      {{ truncate(ev.title, 28) }}
+                    </div>
+                    <div v-else-if="idx === 3" class="event-badge more" @click.stop="selectDayEvents(cell.date, cell.events)">
+                      +{{ cell.events.length - 3 }} more
+                    </div>
+                  </template>
                 </div>
           </div>
+          <!-- event bars that span multiple days (rendered per-week as grid items) -->
+          <template v-for="seg in visibleEventBars" :key="seg.id + '-' + seg.row + '-' + seg.startCol">
+            <div class="event-bar" :style="{gridColumn: seg.startCol + ' / span ' + seg.span, gridRow: seg.row, background: getColor(seg.ev)}" @click.stop="openEvent(seg.ev)">
+              {{ truncate(seg.ev.title, 60) }}
+            </div>
+          </template>
         </div>
       </main>
     </div>
@@ -231,6 +224,39 @@ export default {
       return cells
     })
 
+    const visibleEventBars = computed(()=>{
+      const cells = calendarCells.value
+      if(!cells || cells.length===0) return []
+      const first = cells[0].date
+      const last = cells[cells.length-1].date
+      const firstDay = new Date(first.getFullYear(), first.getMonth(), first.getDate())
+      const lastDay = new Date(last.getFullYear(), last.getMonth(), last.getDate())
+      const bars = []
+      const dayMs = 24*60*60*1000
+      // iterate filtered events and create week-segments
+      filteredEvents.value.forEach(ev=>{
+        const s = ev.startDate
+        const e = ev.endDate
+        if(!s) return
+        const evStart = new Date(s.getFullYear(), s.getMonth(), s.getDate())
+        const evEnd = new Date(e.getFullYear(), e.getMonth(), e.getDate())
+        if(evEnd < firstDay || evStart > lastDay) return
+        const startIdx = Math.max(0, Math.floor((evStart - firstDay) / dayMs))
+        const endIdx = Math.min(cells.length-1, Math.floor((evEnd - firstDay) / dayMs))
+        const startRow = Math.floor(startIdx/7)
+        const endRow = Math.floor(endIdx/7)
+        for(let r = startRow; r<=endRow; r++){
+          const rowStartIdx = r*7
+          const segStart = Math.max(startIdx, rowStartIdx)
+          const segEnd = Math.min(endIdx, rowStartIdx+6)
+          const startCol = (segStart % 7) + 1
+          const span = segEnd - segStart + 1
+          bars.push({ id: ev.id, ev, startCol, span, row: r+1 })
+        }
+      })
+      return bars
+    })
+
     const eventsForSelected = computed(()=>{
       if(!selectedDate.value) return []
       const d = new Date(selectedDate.value.getFullYear(), selectedDate.value.getMonth(), selectedDate.value.getDate())
@@ -257,7 +283,11 @@ export default {
     function nextMonth(){ if(currentMonth.value===11){ currentMonth.value=0; currentYear.value++ } else currentMonth.value++ }
 
     // removed modified filter/grouping as it's not used
-    function openEvent(ev){ selectedEvent.value = ev }
+    function openEvent(ev){
+      // ensure day selection panel doesn't open when directly opening an event
+      selectedDate.value = null
+      selectedEvent.value = ev
+    }
 
     const openDayModal = ref(false)
     const dayModalEvents = ref([])
@@ -275,17 +305,26 @@ export default {
       setTimeout(()=>{ openEvent(ev) }, 80)
     }
 
+    function onDayClick(cell, e){
+      // if clicked inside an event badge, ignore and let that handler run
+      try{
+        if(e && e.target && e.target.closest && e.target.closest('.event-badge')) return
+      }catch(err){}
+      selectedDate.value = cell.date
+    }
+
+    function truncate(s, n){
+      if(!s) return ''
+      return s.length > n ? s.slice(0,n-1) + '…' : s
+    }
+
     function getColor(ev){
       const cat = (ev.category || '').toString().toLowerCase()
       const rawCat = (ev.raw && (ev.raw.lclsSystm1 || ev.raw.lclsSystm2 || '')).toString().toLowerCase()
       const title = (ev.title||'').toLowerCase()
-      // festival/performance (주황)
-      if(cat.includes('축제') || cat.includes('공연') || rawCat.includes('ev') || title.includes('축제') || title.includes('페스티벌')) return '#f97316'
-      // museum / art (청록)
-      if(cat.includes('박물관') || cat.includes('미술') || rawCat.includes('ve') || title.includes('박물관') || title.includes('미술')) return '#06b6d4'
-      // leports / sports (파랑)
-      if(cat.includes('레포츠') || rawCat.includes('ex') || title.includes('레포츠')) return '#60a5fa'
-      // default: 숙박/기타 (초록)
+      // festival/performance uses 문화시설 색상 (#06b6d4)
+      if(cat.includes('축제') || cat.includes('공연') || rawCat.includes('ev') || title.includes('축제') || title.includes('페스티벌')) return '#06b6d4'
+      // default: 숙박/기타
       return '#34d399'
     }
 
@@ -305,7 +344,7 @@ export default {
     })
 
     onMounted(load)
-    return { currentYear, currentMonth, calendarCells, prevMonth, nextMonth, groupBy, selectedEvent, openEvent, categoryFilter, setCategory, getColor, eventsForSelected, selectedDate, monthEventCount, monthEvents, openDayModal, dayModalEvents, selectDayEvents, openEventFromModal, selectedDateDisplay, isToday }
+    return { currentYear, currentMonth, calendarCells, prevMonth, nextMonth, groupBy, selectedEvent, openEvent, categoryFilter, setCategory, getColor, eventsForSelected, selectedDate, monthEventCount, monthEvents, openDayModal, dayModalEvents, selectDayEvents, openEventFromModal, selectedDateDisplay, isToday, truncate, visibleEventBars, onDayClick }
   }
 }
 </script>
@@ -327,8 +366,14 @@ export default {
 .day.today{background:#fffbe6;border:1px solid #fde68a}
 .day-badges{display:flex;flex-direction:column;gap:6px}
 .day-count{padding:4px 6px;border-radius:8px;color:#fff;font-size:0.85rem;cursor:pointer;display:inline-block}
-.modal{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:flex;align-items:center;justify-content:center;padding:1rem}
-.modal-card{background:#fff;padding:1rem;border-radius:8px;max-width:720px;width:100%}
+.event-badge{padding:6px 8px;border-radius:8px;color:#fff;font-size:0.75rem;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.event-badge.more{background:#94a3b8}
+.event-bar{z-index:2;padding:6px 8px;border-radius:6px;color:#fff;font-size:0.85rem;align-self:start;height:28px;display:flex;align-items:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.days .day{z-index:1}
+/* Hide multi-day spanning event bars when user requests removal */
+.event-bar{display:none !important}
+.modal{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:flex;align-items:center;justify-content:center;padding:1rem;z-index:99999}
+.modal-card{background:#fff;padding:1rem;border-radius:8px;max-width:720px;width:100%;position:relative;z-index:100000}
 .modal-card{max-height:80vh;overflow:auto}
 .day-modal-card{max-height:70vh;overflow:auto;padding:1rem}
 

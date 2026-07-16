@@ -1,5 +1,5 @@
 <template>
-  <div class="bookmarks">
+  <div class="bookmarks page-bg-frame">
     <h2>북마크</h2>
       <section>
         <h3>북마크한 게시글</h3>

@@ -1,5 +1,5 @@
 <template>
-  <div class="board-page">
+  <div class="board-page page-bg-frame">
     <header class="board-header">
       <div class="header-left">
         <h2>지역 게시판</h2>

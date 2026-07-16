@@ -115,8 +115,8 @@ export default {
 </script>
 
 <style scoped>
-.chat-button{position:fixed;right:18px;bottom:18px;background:#2563eb;color:#fff;border:none;padding:0.6rem 0.9rem;border-radius:999px;box-shadow:0 8px 24px rgba(2,6,23,0.2);cursor:pointer}
-.chat-overlay{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:18px;z-index:9999}
+.chat-button{position:fixed;right:18px;bottom:18px;background:#2563eb;color:#fff;border:none;padding:0.6rem 0.9rem;border-radius:999px;box-shadow:0 8px 24px rgba(2,6,23,0.2);cursor:pointer;z-index:100001}
+.chat-overlay{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:18px;z-index:100000}
 .chat-card{width:360px;max-height:72vh;background:#fff;border-radius:12px;box-shadow:0 20px 50px rgba(2,6,23,0.2);display:flex;flex-direction:column;overflow:hidden}
 .chat-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #f1f5f9}
 .chat-body{padding:12px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:8px}

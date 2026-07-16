@@ -175,7 +175,7 @@ return { poiCounts, totalPOI, totalPosts, totalBookmarks, recentPosts, openPost,
 <style scoped>
 .home{display:flex;flex-direction:column;gap:1rem}
 /* Busan (Gwangan Bridge) photo background from assets */
-.home{background-image: linear-gradient(rgba(0,18,36,0.25), rgba(0,18,36,0.05)), url('/src/assets/gwangandaegyo.svg');
+.home{background-image: linear-gradient(rgba(0,18,36,0.25), rgba(0,18,36,0.05)), url('/docs/data/image.png');
 background-size:cover;background-position:center;background-attachment:fixed;padding:1rem}
 .home h3{color:#ffffff !important;text-shadow:0 2px 8px rgba(0,0,0,0.7);}
 .hero{display:flex;gap:1rem;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#f0fdfa,#ffffff);padding:1.5rem;border-radius:12px}

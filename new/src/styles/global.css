@@ -1,6 +1,6 @@
 :root{
   --bg:#f5f7fb;
-  --card:#ffffff;
+  --card:rgba(255,255,255,0.88);
   --muted:#6b7280;
   --text:#0f172a;
   --primary:#06b6d4;
@@ -10,7 +10,17 @@
 }
 
 *{box-sizing:border-box}
-html,body,#app{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+html,body,#app{height:100%;margin:0;color:var(--text);font-family:'Noto Sans KR',Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+/* make app container transparent so body background image shows through */
+#app{background:transparent}
+/* Site background image */
+body{
+  background-image: url('/docs/data/image.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+}
 body{line-height:1.45;-webkit-font-smoothing:antialiased}
 
 h1,h2,h3,h4,h5{margin:0;color:var(--text);font-weight:700}
@@ -59,3 +69,27 @@ input:focus,textarea:focus,select:focus{box-shadow:0 4px 14px rgba(14,165,163,0.
 
 /* Responsive */
 @media (max-width:900px){.board-grid{grid-template-columns:1fr}.nav{display:none}}
+
+/* Apply provided sea background to pages that use page-bg-frame or calendar-page */
+.page-bg-frame, .calendar-page, .home, .guide, .bookmarks {
+  background-image: linear-gradient(rgba(0,18,36,0.10), rgba(0,18,36,0.02)), url('/docs/data/image.png');
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+}
+
+/* ensure cards remain readable */
+.page-bg-frame .card, .calendar-page .card, .home .card, .guide .card, .bookmarks .card { background: rgba(255,255,255,0.88) }
+
+/* Make page content frames narrower and centered so background shows at edges */
+.page-bg-frame{padding:2.5rem 6rem}
+.page-bg-frame > *{max-width:1200px;margin-left:auto;margin-right:auto}
+.page-bg-frame .card{max-width:1100px;margin-left:auto;margin-right:auto}
+/* Restore full-width for the map page so the map column is not constrained */
+/* Ensure map page uses full-width layout (override page-bg-frame centering) */
+.page-bg-frame.map-page { padding-left: 0 !important; padding-right: 0 !important }
+.page-bg-frame.map-page > * { max-width: none !important; margin-left: 0 !important; margin-right: 0 !important }
+.page-bg-frame.map-page .card { max-width: none !important }
+
+/* Slightly reduce overlay on these pages so background is more visible */
+.page-bg-frame, .guide, .bookmarks { background-image: linear-gradient(rgba(0,18,36,0.06), rgba(0,18,36,0.02)), url('/docs/data/image.png') }

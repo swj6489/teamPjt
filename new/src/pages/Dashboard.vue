@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-page">
+  <div class="dashboard-page page-bg-frame">
     <header class="dash-hero card">
       <div>
         <h2>데이터 대시보드</h2>

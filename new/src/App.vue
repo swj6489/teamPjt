@@ -17,7 +17,9 @@
     </header>
 
     <main class="main">
-      <router-view />
+      <div class="page-bg-frame">
+        <router-view />
+      </div>
     </main>
 
     <footer class="footer">© LocalHub - Busan · 교육용 프로젝트 · 데이터 출처: 한국관광공사</footer>
