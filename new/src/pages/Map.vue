@@ -1,7 +1,7 @@
 <template>
   <div class="map-page page-bg-frame">
-    <div class="controls" style="display:grid;grid-template-columns:1fr 340px;align-items:center;gap:0.5rem">
-      <div class="card controls-inner" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 0.8rem">
+    <div class="controls" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+      <div class="card controls-inner" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 0.8rem;transform:translateX(-170px)">
         <input class="input" v-model="searchQuery" @keyup.enter="performSearch" placeholder="장소 검색 (이름 입력)" />
         <button class="btn ghost" @click="performSearch">검색</button>
         <button class="btn" @click="clearSearch">초기화</button>
@@ -10,7 +10,6 @@
           <button class="btn ghost" @click="selectCategory('All')">All</button>
         </div>
       </div>
-      <div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 340px;gap:1rem;align-items:start">
       <div>
@@ -30,7 +29,8 @@
         </ul>
 
         <!-- Inline POI detail below the list -->
-        <div v-if="selectedPOI" class="poi-detail card" style="margin-top:0.6rem;padding:0.6rem">
+        <div v-if="selectedPOI" class="poi-detail card" style="margin-top:0.6rem;padding:0.6rem;position:relative">
+          <button @click.stop="closePOIModal" aria-label="닫기" style="position:absolute;right:8px;top:8px;border:none;background:transparent;font-size:1rem;cursor:pointer">✕</button>
           <div style="display:flex;gap:0.6rem;align-items:flex-start">
             <div style="flex:0 0 96px">
               <img v-if="selectedPOI.image" :src="selectedPOI.image" alt="" style="width:96px;height:72px;object-fit:cover;border-radius:6px" />
@@ -44,9 +44,9 @@
                 <div><strong>주소:</strong> {{ selectedPOI.addr || '정보 없음' }}</div>
                 <div style="margin-top:0.25rem"><strong>전화:</strong> {{ selectedPOI.tel || '정보 없음' }}</div>
               </div>
-              <div style="margin-top:0.5rem;display:flex;gap:0.5rem">
-                <button class="btn small" @click.prevent="openDirections('driving')">🚗 길찾기</button>
-                <button class="btn" style="margin-left:auto" @click.stop="togglePoiBookmark(selectedPOI)" :class="{booked:isPoiBookmarked(selectedPOI.id)}">🔖 북마크</button>
+              <div style="margin-top:0.5rem;display:flex;gap:0.6rem;align-items:center;justify-content:flex-start">
+                <button class="btn small" style="margin-right:8px" @click.prevent="openDirections('driving')">🚗 길찾기</button>
+                <button class="btn" @click.stop="togglePoiBookmark(selectedPOI)" :class="{booked:isPoiBookmarked(selectedPOI.id)}" style="white-space:nowrap;padding-left:0.9rem;padding-right:0.9rem">🔖 북마크</button>
               </div>
             </div>
           </div>
@@ -419,7 +419,7 @@ export default {
 .map-page{display:grid;grid-template-columns:1fr 360px;gap:1rem;padding:1rem 1.5rem}
 .controls{grid-column:1/-1;display:flex;gap:0.5rem;margin-bottom:0.5rem}
 .controls button{padding:0.4rem 0.6rem;border-radius:6px;border:1px solid #e5e7eb;background:#fff}
-.controls button.active{background:rgba(25,118,210,0.08);color:#1976d2;font-weight:600}
+.controls button.active{background:var(--primary);color:#fff;border-color:transparent;font-weight:700;box-shadow:0 6px 14px rgba(6,182,212,0.12)}
 .map{width:100%;border-radius:8px}
 /* make the map area square and reasonably large for usability */
 #map{aspect-ratio:1/1;width:100%;min-height:480px;max-width:100%;height:auto !important}

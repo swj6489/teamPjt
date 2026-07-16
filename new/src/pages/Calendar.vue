@@ -16,13 +16,23 @@
             <option value="modified">갱신일 기준</option>
           </select>
         </label>
-        <label style="margin-left:1rem">카테고리: 
-          <button class="btn" :class="{primary: categoryFilter==='all'}" @click="setCategory('all')">전체</button>
-          <button class="btn" :class="{primary: categoryFilter==='festival'}" @click="setCategory('festival')" style="margin-left:0.4rem">축제만</button>
-        </label>
       </div>
       <div class="legend">
         <span class="legend-item"><b style="background:#06b6d4"></b> 축제/공연</span>
+      </div>
+      <div class="festival-search" style="margin-top:0.5rem;display:flex;gap:0.6rem;align-items:center;position:relative">
+        <input class="input" v-model="festivalQuery" @keyup.enter="performFestivalSearch" placeholder="축제명으로 검색 (예: 부산국제)" style="min-width:260px" />
+        <button class="btn primary" @click="performFestivalSearch">검색</button>
+        <div style="color:var(--muted);font-size:0.95rem">축제 결과: <strong>{{ festivalResults.length }}</strong></div>
+        <div v-if="festivalResults.length && showFestivalResults" style="position:absolute;left:260px;top:56px;background:#fff;border:1px solid #eef2f7;border-radius:8px;padding:0.5rem;max-width:520px;box-shadow:0 8px 20px rgba(2,6,23,0.08);z-index:50;max-height:200px;overflow:auto">
+          <button @click.stop="closeFestivalResults" style="position:absolute;right:8px;top:6px;border:none;background:transparent;font-size:1rem;cursor:pointer">✕</button>
+          <ul style="list-style:none;padding:0;margin:0">
+            <li v-for="(f,idx) in festivalResults.slice(0,5)" :key="f.id" style="padding:0.4rem 0;border-bottom:1px dashed #f1f5f9;cursor:pointer" @click.stop="openEvent(f)">
+              <div style="font-weight:700">{{ f.title }}</div>
+              <div style="color:var(--muted);font-size:0.92rem">({{ f.start }} ~ {{ f.end }})</div>
+            </li>
+          </ul>
+        </div>
       </div>
     </header>
 
@@ -34,7 +44,7 @@
         <div class="days">
           <div v-for="cell in calendarCells" :key="cell.key" class="day" :class="{other: !cell.currentMonth, selected: selectedDate && selectedDate.toDateString()===cell.date.toDateString(), today: isToday(cell.date)}" @click="onDayClick(cell, $event)">
                 <div class="date">{{ cell.date.getDate() }}</div>
-                <div class="day-badges">
+                <div class="day-badges" v-if="cell.currentMonth">
                   <template v-for="(ev, idx) in cell.events" :key="ev.id">
                     <div v-if="idx < 3" class="event-badge" :style="{background: getColor(ev)}" @click.stop="openEvent(ev)">
                       {{ truncate(ev.title, 28) }}
@@ -340,6 +350,17 @@ export default {
     const categoryFilter = ref('all')
     function setCategory(v){ categoryFilter.value = v }
 
+    // festival search
+    const festivalQuery = ref('')
+    const showFestivalResults = ref(false)
+    const festivalResults = computed(()=>{
+      const q = (festivalQuery.value||'').trim().toLowerCase()
+      if(!q) return []
+      return events.value.filter(ev=> (ev.category||'').toString().includes('축제') && (ev.title||'').toLowerCase().includes(q) ).sort((a,b)=>a.startDate-b.startDate)
+    })
+    function performFestivalSearch(){ showFestivalResults.value = true }
+    function closeFestivalResults(){ showFestivalResults.value = false }
+
     function isToday(date){
       if(!date) return false
       const t = new Date()
@@ -353,7 +374,7 @@ export default {
     })
 
     onMounted(load)
-    return { currentYear, currentMonth, calendarCells, prevMonth, nextMonth, groupBy, selectedEvent, openEvent, categoryFilter, setCategory, getColor, eventsForSelected, selectedDate, monthEventCount, monthEvents, openDayModal, dayModalEvents, selectDayEvents, openEventFromModal, selectedDateDisplay, isToday, truncate, visibleEventBars, onDayClick }
+    return { currentYear, currentMonth, calendarCells, prevMonth, nextMonth, groupBy, selectedEvent, openEvent, categoryFilter, setCategory, getColor, eventsForSelected, selectedDate, monthEventCount, monthEvents, openDayModal, dayModalEvents, selectDayEvents, openEventFromModal, selectedDateDisplay, isToday, truncate, visibleEventBars, onDayClick, festivalQuery, festivalResults, performFestivalSearch, showFestivalResults, closeFestivalResults }
   }
 }
 </script>
@@ -366,10 +387,17 @@ export default {
 .side{width:240px;background:#fff;padding:0.75rem;border-radius:8px}
 .main-cal{flex:1}
 .weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:transparent;padding:0 6px;border-radius:6px}
-.weekdays div{text-align:center;font-weight:700;color:#9ca3af;padding:10px 0}
+.weekdays div{
+  text-align:center;
+  font-weight:800;
+  color:var(--text);
+  padding:10px 0;
+  font-size:0.98rem;
+  letter-spacing:0.4px;
+}
 .days{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:100px;gap:10px;margin-top:6px}
 .day{background:#fff;padding:10px;border-radius:8px;overflow:auto;box-shadow:0 1px 2px rgba(2,6,23,0.04);border:1px solid #eef2f7}
-.day.other{opacity:0.5;background:transparent;border-color:transparent}
+.day.other{opacity:1;background:rgba(255,255,255,0.85);border-color:#f1f5f9;color:var(--muted)}
 .date{font-weight:700;margin-bottom:6px;color:#374151}
 .day.selected{outline:3px solid rgba(59,130,246,0.12);background:linear-gradient(180deg,#fff8ed,#fff)}
 .day.today{background:#fffbe6;border:1px solid #fde68a}

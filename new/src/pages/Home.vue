@@ -6,7 +6,7 @@
         <p>공공데이터로 만나는 우리 동네 — 익명으로 자유롭게 지역 정보를 나눠요.</p>
         <div class="hero-cta">
           <router-link to="/map" class="btn primary">지도로 둘러보기</router-link>
-          <router-link to="/dashboard" class="btn">데이터 대시보드</router-link>
+          <router-link to="/dashboard" class="btn primary">데이터 대시보드</router-link>
         </div>
       </div>
       <div class="hero-right">
@@ -183,8 +183,9 @@ background-size:cover;background-position:center;background-attachment:fixed;pad
 .hero-cta{margin-top:0.75rem;display:flex;gap:0.5rem}
 .btn{padding:0.5rem 0.9rem;border-radius:8px;background:#fff;border:1px solid #e5e7eb;text-decoration:none;color:#0f172a}
 .btn.primary{background:var(--primary);color:#fff;border:none}
-.stats{display:flex;gap:1rem}
-.stat{background:#fff;padding:0.75rem;border-radius:8px;min-width:100px;text-align:center}
+.stats{display:flex;gap:1rem;align-items:center}
+.stat{background:var(--primary);padding:0.75rem;border-radius:8px;min-width:100px;text-align:center;color:#fff;box-shadow:none}
+.stat strong{color:#fff}
 .categories .cats{display:flex;gap:0.8rem;flex-wrap:wrap}
 .categories h3{margin-bottom:0.6rem}
 .cat{background:#fff;padding:0.75rem 0.9rem;border-radius:8px}
