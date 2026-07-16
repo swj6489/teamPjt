@@ -153,6 +153,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { loadPosts, savePosts, STORAGE_KEY } from '../composables/usePosts'
 
 export default {
@@ -169,6 +170,7 @@ export default {
     const page = ref(1)
     const perPage = 50
 
+    const route = useRoute()
     onMounted(()=>{
       posts.value = loadPosts() || []
       // ensure numeric fields
@@ -176,6 +178,11 @@ export default {
       try{ bookmarks.value = JSON.parse(localStorage.getItem('localhub-bookmarks')||'[]') }catch(e){ bookmarks.value=[] }
       // mark posts that are bookmarked so their UI can mirror `liked` behaviour
       posts.value.forEach(p=>{ p.bookmarked = bookmarks.value.includes(p.id) })
+      // if navigated with ?postId=..., open that post
+      try{
+        const id = route.query.postId
+        if(id){ const found = posts.value.find(x=>x.id===id.toString()); if(found) { openPostRow(found) } }
+      }catch(e){}
     })
 
     function persist(){

@@ -90,8 +90,35 @@ export default {
         for(const p of all){ if(stops.length>=5) break; if(!used.has(p.id) && p.lat && p.lng){ stops.push(p); used.add(p.id) } }
       }
 
-      const rid = `${profile.value}-${Date.now()}`
-      routes.value = [{ id: rid, profile: profile.value, title: `${labelFor(profile.value)} 추천 루트`, desc: `${labelFor(profile.value)} 분들에게 적합한 코스`, stops }]
+      // produce multiple route variants (2~3) by varying selection strategy
+      const makeStops = (allList, wantOrder, maxStops=5) => {
+        const picked = []
+        const usedIds = new Set()
+        for(const cat of wantOrder){
+          if(picked.length>=maxStops) break
+          const cands = allList.filter(p=> (p.category||'').includes(cat) && p.lat && p.lng && !usedIds.has(p.id))
+          for(const c of cands){ if(picked.length>=maxStops) break; picked.push(c); usedIds.add(c.id) }
+        }
+        if(picked.length<maxStops){
+          for(const p of allList){ if(picked.length>=maxStops) break; if(!usedIds.has(p.id) && p.lat && p.lng){ picked.push(p); usedIds.add(p.id) } }
+        }
+        return picked
+      }
+
+      const routesArr = []
+      const baseWant = prefs[profile.value] || []
+      // variant 0: base preference order
+      routesArr.push({ id: `${profile.value}-${Date.now()}-0`, profile: profile.value, title: `${labelFor(profile.value)} 추천 루트`, desc: `${labelFor(profile.value)} 분들에게 적합한 코스`, stops: makeStops(all, baseWant) })
+      // variant 1: rotated preferences (alternative)
+      const rot = baseWant.slice(1).concat(baseWant.slice(0,1))
+      routesArr.push({ id: `${profile.value}-${Date.now()}-1`, profile: profile.value, title: `${labelFor(profile.value)} 추천 루트 (대안)`, desc: `다른 취향을 고려한 대안 코스`, stops: makeStops(all, rot) })
+      // variant 2: mixed/randomized alternative (only if enough items)
+      if(all.length>8){
+        const shuffled = all.slice().sort(()=>Math.random()-0.5)
+        routesArr.push({ id: `${profile.value}-${Date.now()}-2`, profile: profile.value, title: `${labelFor(profile.value)} 추천 루트 (랜덤)`, desc: `무작위로 구성한 대안 코스`, stops: shuffled.filter(p=>p.lat&&p.lng).slice(0,5) })
+      }
+
+      routes.value = routesArr
     }
 
     function saveRoute(r){

@@ -52,7 +52,7 @@
           <div v-for="d in ['일','월','화','수','목','금','토']" :key="d">{{ d }}</div>
         </div>
         <div class="days">
-          <div v-for="cell in calendarCells" :key="cell.key" class="day" :class="{other: !cell.currentMonth, selected: selectedDate && selectedDate.toDateString()===cell.date.toDateString()}" @click="selectedDate = cell.date">
+          <div v-for="cell in calendarCells" :key="cell.key" class="day" :class="{other: !cell.currentMonth, selected: selectedDate && selectedDate.toDateString()===cell.date.toDateString(), today: isToday(cell.date)}" @click="selectedDate = cell.date">
                 <div class="date">{{ cell.date.getDate() }}</div>
                 <div class="day-badges">
                   <div v-if="cell.events.length>0" class="day-count" :style="{background: getColor(cell.events[0])}" @click.stop="selectDayEvents(cell.date, cell.events)">🎉 {{ cell.events.length }}</div>
@@ -292,6 +292,12 @@ export default {
     const categoryFilter = ref('all')
     function setCategory(v){ categoryFilter.value = v }
 
+    function isToday(date){
+      if(!date) return false
+      const t = new Date()
+      return date.getFullYear()===t.getFullYear() && date.getMonth()===t.getMonth() && date.getDate()===t.getDate()
+    }
+
     const selectedDateDisplay = computed(()=>{
       if(!selectedDate.value) return ''
       const d = selectedDate.value
@@ -299,7 +305,7 @@ export default {
     })
 
     onMounted(load)
-    return { currentYear, currentMonth, calendarCells, prevMonth, nextMonth, groupBy, selectedEvent, openEvent, categoryFilter, setCategory, getColor, eventsForSelected, selectedDate, monthEventCount, monthEvents, openDayModal, dayModalEvents, selectDayEvents, openEventFromModal, selectedDateDisplay }
+    return { currentYear, currentMonth, calendarCells, prevMonth, nextMonth, groupBy, selectedEvent, openEvent, categoryFilter, setCategory, getColor, eventsForSelected, selectedDate, monthEventCount, monthEvents, openDayModal, dayModalEvents, selectDayEvents, openEventFromModal, selectedDateDisplay, isToday }
   }
 }
 </script>
@@ -318,6 +324,7 @@ export default {
 .day.other{opacity:0.5;background:transparent;border-color:transparent}
 .date{font-weight:700;margin-bottom:6px;color:#374151}
 .day.selected{outline:3px solid rgba(59,130,246,0.12);background:linear-gradient(180deg,#fff8ed,#fff)}
+.day.today{background:#fffbe6;border:1px solid #fde68a}
 .day-badges{display:flex;flex-direction:column;gap:6px}
 .day-count{padding:4px 6px;border-radius:8px;color:#fff;font-size:0.85rem;cursor:pointer;display:inline-block}
 .modal{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:flex;align-items:center;justify-content:center;padding:1rem}

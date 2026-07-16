@@ -27,7 +27,7 @@
           <button class="btn primary" :disabled="sending">전송</button>
         </form>
 
-        <div class="chat-footer muted small">키는 환경변수 `VITE_OPENAI_KEY`에서 읽습니다. 키 노출에 주의하세요.</div>
+        <div class="chat-footer muted small">키 노출에 주의하세요.</div>
       </div>
     </div>
   </div>

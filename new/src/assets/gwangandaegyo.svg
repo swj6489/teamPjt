@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="nightSky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#070617"/>
+      <stop offset="60%" stop-color="#10243a"/>
+      <stop offset="100%" stop-color="#052234"/>
+    </linearGradient>
+    <linearGradient id="seaDeep" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#081726"/>
+      <stop offset="100%" stop-color="#001927"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- night sky -->
+  <rect width="1600" height="900" fill="url(#nightSky)" />
+
+  <!-- distant stars subtle -->
+  <g opacity="0.08" fill="#ffffff">
+    <circle cx="200" cy="80" r="1.2" />
+    <circle cx="420" cy="60" r="1" />
+    <circle cx="860" cy="100" r="1" />
+    <circle cx="1240" cy="70" r="1.4" />
+  </g>
+
+  <!-- bridge group -->
+  <g transform="translate(0,160)">
+    <!-- deck -->
+    <rect x="0" y="420" width="1600" height="56" fill="#071522" />
+
+    <!-- main towers -->
+    <g fill="#08151a">
+      <rect x="200" y="80" width="44" height="420" rx="6" />
+      <rect x="1356" y="80" width="44" height="420" rx="6" />
+    </g>
+
+    <!-- purple lights along deck (dashed impression) -->
+    <g stroke="#c68aff" stroke-width="2" stroke-linecap="round" opacity="0.95" filter="url(#glow)">
+      <path d="M10 446 L1590 446" stroke-dasharray="6 14" stroke-linejoin="round" />
+    </g>
+
+    <!-- cables with soft purple glow -->
+    <g stroke="#d9a6ff" stroke-opacity="0.85" stroke-width="2" fill="none" filter="url(#glow)">
+      <path d="M222 100 C 360 180 520 240 600 280" />
+      <path d="M1378 100 C 1240 180 1080 240 1000 280" />
+      <path d="M222 140 C 420 240 540 300 600 320" stroke-opacity="0.55"/>
+      <path d="M1378 140 C 1180 240 1060 300 1000 320" stroke-opacity="0.55"/>
+    </g>
+
+    <!-- tower lighting glow -->
+    <g filter="url(#glow)">
+      <rect x="184" y="92" width="76" height="20" rx="6" fill="#eaafff" opacity="0.55" />
+      <rect x="1336" y="92" width="76" height="20" rx="6" fill="#eaafff" opacity="0.55" />
+    </g>
+
+    <!-- vertical suspension small lights -->
+    <g fill="#f2d6ff" opacity="0.95">
+      <!-- left cluster -->
+      <circle cx="320" cy="260" r="2.2" />
+      <circle cx="380" cy="280" r="2.2" />
+      <circle cx="440" cy="300" r="2.2" />
+      <!-- right cluster -->
+      <circle cx="1160" cy="260" r="2.2" />
+      <circle cx="1100" cy="280" r="2.2" />
+      <circle cx="1040" cy="300" r="2.2" />
+    </g>
+  </g>
+
+  <!-- sea layers with purple reflections -->
+  <g transform="translate(0,520)">
+    <rect width="1600" height="380" fill="url(#seaDeep)" />
+    <path d="M0 80 C180 40 360 100 540 80 C720 60 900 120 1080 80 C1260 40 1440 100 1600 60 L1600 380 L0 380 Z" fill="#cfa6ff" opacity="0.04" />
+    <path d="M0 120 C140 80 300 140 460 120 C620 100 800 160 980 120 C1160 80 1320 140 1600 100 L1600 380 L0 380 Z" fill="#cfa6ff" opacity="0.06" />
+    <path d="M0 160 C200 120 400 200 600 160 C800 120 1000 200 1200 160 C1400 120 1500 180 1600 140 L1600 380 L0 380 Z" fill="#dcb8ff" opacity="0.08" />
+
+    <!-- reflections under towers (purple streaks) -->
+    <g opacity="0.28">
+      <rect x="180" y="40" width="80" height="220" fill="#c68aff" rx="6" transform="skewX(-12)"/>
+      <rect x="1330" y="40" width="80" height="220" fill="#c68aff" rx="6" transform="skewX(12)"/>
+    </g>
+  </g>
+
+  <!-- subtle vignette overlay -->
+  <rect width="1600" height="900" fill="#000" opacity="0.12" />
+</svg>
